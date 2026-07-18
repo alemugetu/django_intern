@@ -1,3 +1,9 @@
 __pycache__/
 *.py[cod]
 *.*.pyc
+
+# Local environment variables
+.env
+
+# Databases
+*.sqlite3
