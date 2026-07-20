@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Markdown editor dark-mode override — keep it light to match our theme */
+.w-md-editor {
+  --color-canvas-default: #ffffff;
+  --color-fg-default: #1f2937;
+}
+
+/* Smooth focus ring for all interactive elements */
+*:focus-visible {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}

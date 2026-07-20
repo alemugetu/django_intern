@@ -1,9 +1,15 @@
-__pycache__/
+
 *.py[cod]
 *.*.pyc
 
-# Local environment variables
-.env
+db.sqlite3
 
-# Databases
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+.env
 *.sqlite3
+__pycache__/
+*.pyc
+.vscode/

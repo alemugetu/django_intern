@@ -43,15 +43,21 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'blog',
     'django.contrib.admin',
-    'django.contrib.auth', 
+    'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',       # must be before CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -126,3 +132,59 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Media files (user-uploaded content such as featured images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Suppress system-check warnings for apps that don't define a custom primary key
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ─── Django REST Framework ────────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    # Token-based auth + session auth (for the browsable API in dev)
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    # Unauthenticated users get read-only access by default;
+    # individual views can tighten or loosen this.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    # Global pagination — prevents full-table dumps on large datasets
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    # ISO-8601 formatted dates in all responses
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
+    # django-filter integration
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+}
+
+# ─── CORS (Phase 6) ───────────────────────────────────────────────────────────
+# During development the frontend runs on port 5173 (Vite default).
+# Add your production frontend origin to CORS_ALLOWED_ORIGINS before deploying.
+CORS_ALLOWED_ORIGINS = env.list(
+    'CORS_ALLOWED_ORIGINS',
+    default=[
+        'http://localhost:5173',   # Vite dev server
+        'http://localhost:3000',   # CRA / Next.js dev server
+    ],
+)
+
+# Allow the Authorization header so token auth works cross-origin
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
