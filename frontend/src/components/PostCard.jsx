@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 /**
@@ -5,14 +6,19 @@ import { Link } from 'react-router-dom'
  * Receives a single post object from the API.
  */
 export default function PostCard({ post }) {
+  const [imgError, setImgError] = useState(false)
+
+  const showImage = post.featured_image && !imgError
+
   return (
     <article className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
       {/* Featured image */}
-      {post.featured_image ? (
+      {showImage ? (
         <img
           src={post.featured_image}
           alt={post.title}
           className="w-full h-44 object-cover"
+          onError={() => setImgError(true)}
         />
       ) : (
         <div className="w-full h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">

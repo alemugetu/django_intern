@@ -55,6 +55,16 @@ class BlogListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     read_time = serializers.CharField(read_only=True)
 
+    # Use ImageField for uploads, return relative URL via to_representation
+    featured_image = serializers.ImageField(use_url=False)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Prepend /media/ to the image path for Vite proxy
+        if data.get('featured_image'):
+            data['featured_image'] = f"/media/{data['featured_image']}"
+        return data
+
     class Meta:
         model = Blog
         fields = [
@@ -86,6 +96,9 @@ class BlogDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     read_time = serializers.CharField(read_only=True)
 
+    # Use ImageField for uploads, return relative URL via to_representation
+    featured_image = serializers.ImageField(use_url=False)
+
     # Write-only field for setting tags by ID list
     tag_ids = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
@@ -95,8 +108,19 @@ class BlogDetailSerializer(serializers.ModelSerializer):
         source='tags',
     )
 
-    # Nested comments (read-only, only top-level; replies are nested inside each comment)
-    comments = CommentSerializer(many=True, read_only=True)
+    # Only top-level comments — replies are nested inside each comment by CommentSerializer
+    comments = serializers.SerializerMethodField()
+
+    def get_comments(self, obj):
+        top_level = obj.comments.filter(parent=None).select_related('author').prefetch_related('replies__author')
+        return CommentSerializer(top_level, many=True, context=self.context).data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Prepend /media/ to the image path for Vite proxy
+        if data.get('featured_image'):
+            data['featured_image'] = f"/media/{data['featured_image']}"
+        return data
 
     class Meta:
         model = Blog
@@ -130,8 +154,3 @@ class BlogDetailSerializer(serializers.ModelSerializer):
         if not value.strip():
             raise serializers.ValidationError('Content cannot be blank.')
         return value
-
-    def get_comments(self, obj):
-        """Only return top-level comments; replies are nested inside them."""
-        top_level = obj.comments.filter(parent=None).prefetch_related('replies')
-        return CommentSerializer(top_level, many=True).data

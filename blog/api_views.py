@@ -34,7 +34,8 @@ class BlogListCreateAPIView(generics.ListCreateAPIView):
     """
 
     permission_classes = [IsAuthorOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters.SearchFilter,
+                        filters.OrderingFilter]
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'number_of_views']
     ordering = ['-created_at']
@@ -59,7 +60,7 @@ class BlogListCreateAPIView(generics.ListCreateAPIView):
         if tag_slug:
             qs = qs.filter(tags__slug=tag_slug)
 
-        return qs
+        return qs #drf now knows which blogs to serializer
 
     def get_serializer_class(self):
         return BlogListSerializer if self.request.method == 'GET' else BlogDetailSerializer
@@ -80,7 +81,7 @@ class BlogRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthorOrReadOnly]
     lookup_field = 'slug'
 
-    def get_queryset(self):
+    def get_queryset(self): #Which blogs are accessible?
         user = self.request.user
         if user and user.is_authenticated:
             return (

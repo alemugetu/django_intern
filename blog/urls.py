@@ -17,30 +17,6 @@ from .api_views import (
     register,
 )
 
-# ─── REST API routes ──────────────────────────────────────────────────────────
-#
-# Posts
-#   GET  /api/posts/                       paginated list; ?search= ?tag= ?ordering=
-#   POST /api/posts/                       create post (auth required)
-#   GET  /api/posts/<slug>/                retrieve post + increment views
-#   PUT|PATCH  /api/posts/<slug>/          update post (author only)
-#   DELETE     /api/posts/<slug>/          delete post (author only)
-#
-# Comments
-#   GET  /api/posts/<slug>/comments/       list top-level comments w/ nested replies
-#   POST /api/posts/<slug>/comments/       add comment (auth required)
-#   GET|PATCH|DELETE /api/comments/<id>/   manage a single comment (author only)
-#
-# Tags
-#   GET  /api/tags/                        list all tags
-#   POST /api/tags/                        create tag (admin only)
-#   GET|PUT|DELETE /api/tags/<slug>/       manage a single tag (admin only)
-#
-# Auth
-#   POST /api/auth/register/               create account → token
-#   POST /api/auth/login/                  credentials → token
-#   POST /api/auth/logout/                 invalidate token
-#   GET  /api/auth/me/                     current user profile
 
 urlpatterns = [
     # Posts

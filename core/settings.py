@@ -172,6 +172,9 @@ CORS_ALLOWED_ORIGINS = env.list(
     'CORS_ALLOWED_ORIGINS',
     default=[
         'http://localhost:5173',   # Vite dev server
+        'http://localhost:5174',   # Vite dev server (alternate port)
+        'http://localhost:5175',   # Vite dev server (alternate port)
+        'http://localhost:5176',   # Vite dev server (alternate port)
         'http://localhost:3000',   # CRA / Next.js dev server
     ],
 )

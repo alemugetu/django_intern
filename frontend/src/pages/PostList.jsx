@@ -15,7 +15,7 @@ export default function PostList() {
   const [pagination, setPagination] = useState({ next: null, previous: null, count: 0 })
   const [page, setPage] = useState(1)
 
-  // Debounce search input by 400ms
+  // Debounce search input by 400ms. To reduce unnecessary API requests and improve performance
   useEffect(() => {
     const id = setTimeout(() => {
       setQuery(search)
@@ -38,7 +38,7 @@ export default function PostList() {
     if (query) params.search = query
     if (selectedTag) params.tag = selectedTag
 
-    getPosts(params)
+    getPosts(params) //call the backend 
       .then(({ data }) => {
         setPosts(data.results ?? data)
         setPagination({ next: data.next, previous: data.previous, count: data.count ?? 0 })

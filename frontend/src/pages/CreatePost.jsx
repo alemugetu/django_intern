@@ -1,5 +1,5 @@
 import MDEditor from '@uiw/react-md-editor'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createPost, getPost, getTags, updatePost } from '../api/posts'
 
@@ -12,6 +12,7 @@ export default function CreatePost() {
   const { slug } = useParams() // undefined when creating
   const navigate = useNavigate()
   const isEditing = Boolean(slug)
+  const fileInputRef = useRef(null)
 
   const [form, setForm] = useState({
     title: '',
@@ -19,6 +20,9 @@ export default function CreatePost() {
     status: 'draft',
     tag_ids: [],
   })
+  const [imageFile, setImageFile] = useState(null)       // File object for upload
+  const [imagePreview, setImagePreview] = useState(null) // Preview URL
+  const [existingImage, setExistingImage] = useState(null) // URL from server on edit
   const [tags, setTags] = useState([])
   const [loading, setLoading] = useState(isEditing)
   const [submitting, setSubmitting] = useState(false)
@@ -40,6 +44,7 @@ export default function CreatePost() {
           status: data.status,
           tag_ids: data.tags?.map((t) => t.id) ?? [],
         })
+        if (data.featured_image) setExistingImage(data.featured_image)
       })
       .catch(() => navigate('/'))
       .finally(() => setLoading(false))
@@ -57,6 +62,21 @@ export default function CreatePost() {
     }))
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setExistingImage(null)
+  }
+
+  const clearImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    setExistingImage(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const validate = () => {
     const errs = {}
     if (!form.title.trim()) errs.title = 'Title is required.'
@@ -71,8 +91,21 @@ export default function CreatePost() {
 
     setSubmitting(true)
     setErrors({})
+
     try {
-      const payload = { ...form }
+      // Use FormData when an image file is attached — multipart/form-data required
+      let payload
+      if (imageFile) {
+        payload = new FormData()
+        payload.append('title', form.title)
+        payload.append('content', form.content)
+        payload.append('status', form.status)
+        form.tag_ids.forEach((id) => payload.append('tag_ids', id))
+        payload.append('featured_image', imageFile)
+      } else {
+        payload = { ...form }
+      }
+
       if (isEditing) {
         await updatePost(slug, payload)
         navigate(`/posts/${slug}`)
@@ -98,6 +131,8 @@ export default function CreatePost() {
     </div>
   )
 
+  const previewSrc = imagePreview || existingImage
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">
@@ -120,6 +155,38 @@ export default function CreatePost() {
             }`}
           />
           {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
+        </div>
+
+        {/* Featured image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Featured Image
+          </label>
+
+          {previewSrc ? (
+            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+              <img src={previewSrc} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={clearImage}
+                className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+              <span className="text-2xl mb-1">🖼️</span>
+              <span className="text-sm text-gray-500">Click to upload an image</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
 
         {/* Markdown editor */}
